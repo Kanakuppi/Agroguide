@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Crop Recommender</title>
+    <style>
+      :root {
+        --accent1: #ff7a18;
+        --accent2: #6a11cb;
+        --accent3: #00d4ff;
+        --card-glow: rgba(106, 17, 203, 0.12);
+        --muted: rgba(255, 255, 255, 0.8);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial;
+      }
+      body {
+        background: url("{{ url_for('static', filename='background.jpeg') }}")
+          no-repeat center center fixed;
+        background-size: cover;
+        color: #fdfdfd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.25),
+          rgba(0, 0, 0, 0.4)
+        );
+        backdrop-filter: blur(2px);
+        z-index: 0;
+      }
+
+      .wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 600px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35),
+          0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      header.app-brand {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 10px;
+        justify-content: center;
+        text-align: center;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #3cb371, #9acd32);
+        box-shadow: 0 6px 18px rgba(106, 17, 203, 0.25);
+      }
+      .logo svg {
+        width: 32px;
+        height: 32px;
+      }
+      .title {
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .subtitle {
+        font-size: 13px;
+        color: rgb(255, 255, 255);
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+      }
+      label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      input[type="number"] {
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        outline: none;
+        font-weight: 600;
+      }
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.8); /* white with slight transparency */
+        opacity: 0.6; /* ensure it doesn’t get dimmed */
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+      }
+      .row .field {
+        flex: 1;
+      }
+
+      .legend {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.85);
+        margin-top: 6px;
+        justify-content: center;
+      }
+      .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+        font-size: 13px;
+      }
+
+      button.cta {
+        margin-top: 6px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        background: linear-gradient(90deg, #2ecc71, #9be15d, #f9f871);
+        color: #061024;
+        box-shadow: 0 8px 20px rgba(255, 200, 100, 0.3);
+        transition: transform 0.14s ease, box-shadow 0.14s ease;
+      }
+      button.cta:active {
+        transform: translateY(2px);
+      }
+
+      .result-card {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.18),
+          rgba(106, 17, 203, 0.16)
+        );
+        border-radius: 14px;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        text-align: center;
+        max-width: 600px;
+      }
+      .result-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: center;
+      }
+      .result-badge {
+        padding: 8px 12px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, var(--accent3), var(--accent1));
+        font-weight: 800;
+        color: #022233;
+      }
+      .result-text {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .suggestions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .suggest {
+        padding: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        font-size: 14px;
+      }
+
+      footer {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.85);
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      @media (max-width: 880px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card,
+      .result-card {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: enter 0.45s ease forwards;
+      }
+      .card {
+        animation-delay: 0.05s;
+      }
+      .result-card {
+        animation-delay: 0.16s;
+      }
+      @keyframes enter {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      .loader {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.12);
+        border-top-color: var(--accent3);
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <div class="card">
+          <header class="app-brand">
+            <div class="logo" aria-hidden>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+              >
+                <path
+                  d="M3 21s6-8 12-8"
+                  stroke="white"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  opacity="0.96"
+                />
+                <path
+                  d="M21 7c0 6-8 12-8 12"
+                  stroke="white"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  opacity="0.96"
+                />
+              </svg>
+            </div>
+            <div>
+              <div class="title">Crop Recommender</div>
+              <div class="subtitle">
+                Enter soil & weather — get a smart crop suggestion
+              </div>
+            </div>
+          </header>
+
+          <form id="prediction-form">
+            <div class="row">
+              <div class="field">
+                <label for="N">Nitrogen (N)</label>
+                <input
+                  type="number"
+                  id="N"
+                  name="N"
+                  min="0"
+                  step="1"
+                  placeholder="e.g. 90"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="P">Phosphorus (P)</label>
+                <input
+                  type="number"
+                  id="P"
+                  name="P"
+                  min="0"
+                  step="1"
+                  placeholder="e.g. 42"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="K">Potassium (K)</label>
+                <input
+                  type="number"
+                  id="K"
+                  name="K"
+                  min="0"
+                  step="1"
+                  placeholder="e.g. 43"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="temperature">Temperature (°C)</label>
+                <input
+                  type="number"
+                  id="temperature"
+                  name="temperature"
+                  step="0.01"
+                  placeholder="e.g. 25.5"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="humidity">Humidity (%)</label>
+                <input
+                  type="number"
+                  id="humidity"
+                  name="humidity"
+                  step="0.01"
+                  placeholder="e.g. 80"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="ph">pH</label>
+                <input
+                  type="number"
+                  id="ph"
+                  name="ph"
+                  step="0.01"
+                  placeholder="e.g. 6.5"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="rainfall">Rainfall (mm)</label>
+              <input
+                type="number"
+                id="rainfall"
+                name="rainfall"
+                step="0.01"
+                placeholder="e.g. 200"
+                required
+              />
+            </div>
+
+            <div
+              style="
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                justify-content: center;
+                margin-top: 6px;
+              "
+            >
+              <button class="cta" type="submit">Get Recommendation</button>
+              <div id="loading" style="display: none">
+                <span class="loader" aria-hidden></span>
+              </div>
+            </div>
+
+            <div class="legend">
+              <div class="chip">Model: Random Forest</div>
+              <div class="chip">Normalized inputs</div>
+            </div>
+          </form>
+
+          <footer>
+            Tip: Use decimals for temperature, pH & rainfall for best results.
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("prediction-form");
+      const resultText = document.getElementById("result-text");
+      const cropBadge = document.getElementById("crop-badge");
+      const loading = document.getElementById("loading");
+      const tips = document.getElementById("tips");
+
+      function setLoading(on) {
+        loading.style.display = on ? "inline-block" : "none";
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const data = Object.fromEntries(new FormData(form).entries());
+        for (const k in data) data[k] = parseFloat(data[k]);
+
+        try {
+          const resp = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          const json = await resp.json();
+          setLoading(false);
+          if (json.error) {
+            resultText.innerText = "Error: " + json.error;
+            cropBadge.innerText = "Error";
+            cropBadge.style.background =
+              "linear-gradient(90deg,#ffb199,#ff7a18)";
+            return;
+          }
+          const crop = json.predicted_crop || "Unknown";
+
+          resultText.innerText = crop;
+          cropBadge.innerText = crop;
+          cropBadge.style.background =
+            "linear-gradient(90deg,var(--accent3),var(--accent2))";
+
+          const lower = String(crop).toLowerCase();
+          const suggestions = [];
+          if (lower.includes("rice"))
+            suggestions.push("Keep fields flooded in early growth stages.");
+          if (lower.includes("wheat"))
+            suggestions.push("Sow in cooler months; maintain pH ~6-7.");
+          if (lower.includes("maize") || lower.includes("corn"))
+            suggestions.push("Ensure well-drained soil and balanced NPK.");
+          if (suggestions.length === 0)
+            suggestions.push("Use balanced NPK; monitor moisture and pH.");
+
+          tips.innerHTML = suggestions
+            .map((s) => `<div class="suggest">${s}</div>`)
+            .join("");
+        } catch (err) {
+          setLoading(false);
+          resultText.innerText = "Network or server error.";
+          cropBadge.innerText = "Offline";
+        }
+      });
+    </script>
+  </body>
+</html>
