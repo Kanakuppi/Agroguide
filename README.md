@@ -16,7 +16,7 @@ Soil pH ⚖️
 
 Rainfall 🌧️
 
-🚀 Features
+ #### 🚀 Features
 
 Crop prediction using trained ML model
 
@@ -26,7 +26,7 @@ Scalable and accurate preprocessing (MinMaxScaler + StandardScaler)
 
 User-friendly input form for farmers
 
-🛠️ Tech Stack
+#### 🛠️ Tech Stack
 
 Python (Flask, Pandas, Scikit-learn)
 
