@@ -3,25 +3,26 @@ import pickle
 from flask import Flask, request, jsonify, render_template
 import pandas as pd
 import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 
 # Create the templates directory if it doesn't exist
-if not os.path.exists('templates'):
-    os.makedirs('templates')
+#if not os.path.exists('templates'):
+   # os.makedirs('templates')
 
 # Load the scaler and model
 try:
-    with open('minmax.pkl', 'rb') as f:
-        minmax_scaler = pickle.load(f)
-    with open('scaler.pkl', 'rb') as f:
-        loaded_scaler = pickle.load(f)
+    with open(os.path.join(BASE_DIR, 'minmax.pkl'), 'rb') as f:
+    minmax_scaler = pickle.load(f)
 
-    with open('random_forest_model.pkl', 'rb') as f:
-        loaded_model = pickle.load(f)
-except FileNotFoundError:
-    print("Error: pickle files not found. Please make sure 'scaler.pkl' and 'random_forest_model.pkl' are in the same directory.")
-    exit()
+    with open(os.path.join(BASE_DIR, 'scaler.pkl'), 'rb') as f:
+    loaded_scaler = pickle.load(f)
+
+    with open(os.path.join(BASE_DIR, 'random_forest_model.pkl'), 'rb') as f:
+    loaded_model = pickle.load(f)
+except FileNotFoundError as e:
+    raise RuntimeError(f"Model file missing: {e}")
 
 @app.route('/')
 def index():
@@ -45,5 +46,6 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
