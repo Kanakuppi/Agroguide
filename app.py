@@ -24,36 +24,30 @@ try:
 except FileNotFoundError as e:
     raise RuntimeError(f"Model file missing: {e}")
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-       data = request.get_json() if request.is_json else request.form.to_dict()
+        data = request.get_json() if request.is_json else request.form.to_dict()
 
-       input_data = pd.DataFrame([{
-       'N': float(data['N']),
-       'P': float(data['P']),
-       'K': float(data['K']),
-       'temperature': float(data['temperature']),
-       'humidity': float(data['humidity']),
-       'ph': float(data['ph']),
-       'rainfall': float(data['rainfall'])
-         }])
-        minmax_scaled_data=minmax_scaler.transform(input_data)
-        # Scale the input data using the loaded scaler
+        input_data = pd.DataFrame([{
+            'N': float(data['N']),
+            'P': float(data['P']),
+            'K': float(data['K']),
+            'temperature': float(data['temperature']),
+            'humidity': float(data['humidity']),
+            'ph': float(data['ph']),
+            'rainfall': float(data['rainfall'])
+        }])
+
+        minmax_scaled_data = minmax_scaler.transform(input_data)
         scaled_input_data = loaded_scaler.transform(minmax_scaled_data)
 
-        # Predict the crop using the loaded model
         predicted_crop = loaded_model.predict(scaled_input_data)
 
-        # Return the predicted crop label
-        return jsonify({"predicted_crop": predicted_crop[0]})
-    except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({'predicted_crop': predicted_crop[0]})
 
+    except Exception as e:
+        return jsonify({'error': str(e)})
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
