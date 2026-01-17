@@ -14,13 +14,13 @@ app = Flask(__name__)
 # Load the scaler and model
 try:
     with open(os.path.join(BASE_DIR, 'minmax.pkl'), 'rb') as f:
-    minmax_scaler = pickle.load(f)
+       minmax_scaler = pickle.load(f)
 
     with open(os.path.join(BASE_DIR, 'scaler.pkl'), 'rb') as f:
-    loaded_scaler = pickle.load(f)
+       loaded_scaler = pickle.load(f)
 
     with open(os.path.join(BASE_DIR, 'random_forest_model.pkl'), 'rb') as f:
-    loaded_model = pickle.load(f)
+       loaded_model = pickle.load(f)
 except FileNotFoundError as e:
     raise RuntimeError(f"Model file missing: {e}")
 
