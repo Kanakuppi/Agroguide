@@ -31,9 +31,17 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        data = request.get_json()
-        # Create a DataFrame from the received data
-        input_data = pd.DataFrame([data], columns=['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'])
+       data = request.get_json() if request.is_json else request.form.to_dict()
+
+       input_data = pd.DataFrame([{
+       'N': float(data['N']),
+       'P': float(data['P']),
+       'K': float(data['K']),
+       'temperature': float(data['temperature']),
+       'humidity': float(data['humidity']),
+       'ph': float(data['ph']),
+       'rainfall': float(data['rainfall'])
+         }])
         minmax_scaled_data=minmax_scaler.transform(input_data)
         # Scale the input data using the loaded scaler
         scaled_input_data = loaded_scaler.transform(minmax_scaled_data)
