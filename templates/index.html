@@ -204,6 +204,39 @@
         font-size: 20px;
         font-weight: 700;
       }
+      .result-wrapper {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
+}
+
+.result-label {
+  font-size: 13px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 10px;
+}
+
+.result-pill {
+  display: inline-block;
+  padding: 10px 26px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7ee8a1, #b9fbc0);
+  color: #0b3d2e;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.result-tip {
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
 
       .suggestions {
         display: flex;
@@ -419,12 +452,12 @@
             Tip: Use decimals for temperature, pH & rainfall for best results.
           </footer>
         </div>
-        <div class="result-card">
-          <div class="result-title">
-        <span class="result-badge" id="crop-badge">—</span>
-        <span class="result-text" id="result-text">Enter values to get a recommendation</span>
-          </div>
-  <div class="suggestions" id="tips" style="margin-top: 14px;"></div>
+      <div class="result-wrapper">
+  <div class="result-label">Recommended Crop</div>
+
+  <div class="result-pill" id="crop-badge">—</div>
+
+  <div class="result-tip" id="tips"></div>
 </div>
       </div>
     </div>
@@ -464,8 +497,8 @@
           }
           const crop = json.predicted_crop || "Unknown";
 
-          resultText.innerText = crop;
-          // cropBadge.innerText = crop;
+          // resultText.innerText = crop;
+          cropBadge.innerText = crop;
           cropBadge.style.background =
             "linear-gradient(90deg,var(--accent3),var(--accent2))";
 
