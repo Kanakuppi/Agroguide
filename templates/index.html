@@ -424,7 +424,7 @@
         <span class="result-badge" id="crop-badge">—</span>
         <span class="result-text" id="result-text">Enter values to get a recommendation</span>
           </div>
-  <div class="suggestions" id="tips" style="margin-top: 12px;"></div>
+  <div class="suggestions" id="tips" style="margin-top: 14px;"></div>
 </div>
       </div>
     </div>
@@ -465,7 +465,7 @@
           const crop = json.predicted_crop || "Unknown";
 
           resultText.innerText = crop;
-          cropBadge.innerText = crop;
+          // cropBadge.innerText = crop;
           cropBadge.style.background =
             "linear-gradient(90deg,var(--accent3),var(--accent2))";
 
