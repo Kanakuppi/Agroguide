@@ -67,6 +67,8 @@
       .card {
         background: rgba(255, 255, 255, 0.12);
         border-radius: 16px;
+        postion:relative;
+        overflow:visible;
         padding: 22px;
         border: 1px solid rgba(255, 255, 255, 0.2);
         backdrop-filter: blur(8px);
@@ -206,12 +208,14 @@
       }
       .result-wrapper {
   margin-top: 18px;
-  padding: 18px;
-  border-radius: 16px;
+  padding: 16px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   text-align: center;
+        postion:relative;
+        z-index:2;
 }
 
 .result-label {
@@ -451,14 +455,14 @@
           <footer>
             Tip: Use decimals for temperature, pH & rainfall for best results.
           </footer>
-        </div>
-      <div class="result-wrapper">
+           <div class="result-wrapper">
   <div class="result-label">Recommended Crop</div>
 
   <div class="result-pill" id="crop-badge">—</div>
 
   <div class="result-tip" id="tips"></div>
 </div>
+        </div>
       </div>
     </div>
 
@@ -499,6 +503,7 @@
 
           // resultText.innerText = crop;
           cropBadge.innerText = crop;
+          document.getElementById("result-wrapper").style.display="block";
           cropBadge.style.background =
             "linear-gradient(90deg,var(--accent3),var(--accent2))";
 
