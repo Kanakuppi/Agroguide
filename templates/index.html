@@ -1,352 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Crop Recommender</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crop Recommender</title>
 
-    <style>
-      :root {
-        --accent1: #ff7a18;
-        --accent2: #6a11cb;
-        --accent3: #00d4ff;
-        --muted: rgba(255, 255, 255, 0.8);
+  <style>
+    :root {
+      /* 🌱 user-defined eco colors ONLY */
+      --green-primary: #00ff00;
+      --green-soft: #adff2f;
+      --green-accent: #00ff7f;
+      --green-result: #7cfc00;
+
+      /* controlled neutrals */
+      --text-main: #f5fff5;
+      --text-muted: rgba(245, 255, 245, 0.8);
+
+      /* glass layers */
+      --card-bg: rgba(0, 0, 0, 0.35);
+      --card-border: rgba(0, 255, 0, 0.35);
+      --input-bg: rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    }
+
+    body {
+      min-height: 100vh;
+      background: url("/static/eco_background.jpg")
+        no-repeat center center fixed;
+      background-size: cover;
+      color: var(--text-main);
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* 🌿 soft dark overlay to control neon brightness */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.35),
+        rgba(0, 0, 0, 0.55)
+      );
+      backdrop-filter: blur(2px);
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 26px;
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+      animation: enter 0.45s ease forwards;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--green-soft);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 255, 127, 0.6);
+      background: var(--input-bg);
+      color: var(--text-main);
+      font-weight: 600;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: rgba(245, 255, 245, 0.6);
+    }
+
+    input:focus {
+      border-color: var(--green-primary);
+      box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.35);
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 16px;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+
+      background: linear-gradient(
+        90deg,
+        var(--green-primary),
+        var(--green-soft)
+      );
+      color: #003300;
+      box-shadow: 0 10px 22px rgba(0, 255, 0, 0.5);
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(0, 255, 127, 0.25);
+      color: var(--text-main);
+    }
+
+    /* 🌾 RESULT */
+
+    .result-wrapper {
+      margin-top: 22px;
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(124, 252, 0, 0.6);
+      text-align: center;
+
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+    }
+
+    .result-wrapper.show {
+      animation: fadeUp 0.45s ease forwards;
+      pointer-events: auto;
+    }
+
+    .result-label {
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .result-pill {
+      display: inline-block;
+      padding: 12px 32px;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        var(--green-result),
+        var(--green-accent)
+      );
+      font-size: 20px;
+      font-weight: 800;
+      color: #003300;
+    }
+
+    .suggest {
+      margin-top: 12px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(173, 255, 47, 0.25);
+      font-size: 13px;
+      display: inline-block;
+    }
+
+    footer {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    @keyframes enter {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
       }
-
-      * {
-        box-sizing: border-box;
+      to {
+        opacity: 1;
+        transform: none;
       }
+    }
 
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
+    }
 
-      body {
-        background: url("{{ url_for('static', filename='background.jpeg') }}")
-          no-repeat center center fixed;
-        background-size: cover;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-      }
-
-      body::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          180deg,
-          rgba(0, 0, 0, 0.25),
-          rgba(0, 0, 0, 0.45)
-        );
-        backdrop-filter: blur(2px);
-        z-index: 0;
-      }
-
-      .wrapper {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-      }
-
-      .container {
-        max-width: 600px;
-        width: 100%;
-        padding: 16px;
-      }
-
-      .card {
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 16px;
-        padding: 22px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(8px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-        animation: enter 0.45s ease forwards;
-      }
-
-      header.app-brand {
-        display: flex;
-        gap: 14px;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 10px;
-        text-align: center;
-      }
-
-      .logo {
-        width: 56px;
-        height: 56px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #3cb371, #9acd32);
-      }
-
-      .title {
-        font-size: 20px;
-        font-weight: 700;
-      }
-
-      .subtitle {
-        font-size: 13px;
-        color: #fff;
-        opacity: 0.9;
-      }
-
-      form {
-        display: grid;
-        gap: 12px;
-        margin-top: 8px;
-      }
-
+    @media (max-width: 600px) {
       .row {
-        display: flex;
-        gap: 10px;
-      }
-
-      .field {
-        flex: 1;
-        display: flex;
         flex-direction: column;
       }
+    }
+  </style>
+</head>
 
-      label {
-        font-size: 13px;
-        color: var(--muted);
-        margin-bottom: 6px;
-      }
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="card">
+        <header>
+          <div class="title">Crop Recommender</div>
+          <div class="subtitle">
+            Eco-friendly crop suggestions using soil & climate data
+          </div>
+        </header>
 
-      input {
-        padding: 10px;
-        border-radius: 10px;
-        border: none;
-        background: rgba(255, 255, 255, 0.15);
-        color: #fff;
-        font-weight: 600;
-        outline: none;
-      }
-
-      input::placeholder {
-        color: rgba(255, 255, 255, 0.7);
-      }
-
-      button.cta {
-        padding: 12px 18px;
-        border-radius: 12px;
-        border: none;
-        font-weight: 700;
-        font-size: 16px;
-        cursor: pointer;
-        background: linear-gradient(90deg, #2ecc71, #9be15d, #f9f871);
-        color: #061024;
-      }
-
-      .legend {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        font-size: 12px;
-        margin-top: 6px;
-      }
-
-      .chip {
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.18);
-      }
-
-      /* ---------- RESULT (FADE-IN) ---------- */
-
-      .result-wrapper {
-        margin-top: 18px;
-        padding: 18px;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        text-align: center;
-
-        /* hidden initially */
-        opacity: 0;
-        transform: translateY(12px);
-        pointer-events: none;
-      }
-
-      .result-wrapper.show {
-        animation: fadeUp 0.45s ease forwards;
-        pointer-events: auto;
-      }
-
-      .result-label {
-        font-size: 12px;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        opacity: 0.75;
-        margin-bottom: 10px;
-      }
-
-      .result-pill {
-        display: inline-block;
-        padding: 10px 28px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--accent3), var(--accent2));
-        font-size: 20px;
-        font-weight: 700;
-        color: #022233;
-      }
-
-      .suggest {
-        margin-top: 10px;
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.18);
-        font-size: 13px;
-        display: inline-block;
-      }
-
-      footer {
-        font-size: 13px;
-        opacity: 0.85;
-        text-align: center;
-        margin-top: 10px;
-      }
-
-      @keyframes enter {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-
-      @keyframes fadeUp {
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="wrapper">
-      <div class="container">
-        <div class="card">
-          <header class="app-brand">
-            <div class="logo">🌱</div>
-            <div>
-              <div class="title">Crop Recommender</div>
-              <div class="subtitle">
-                Enter soil & weather — get a smart crop suggestion
-              </div>
-            </div>
-          </header>
-
-          <form id="prediction-form">
-            <div class="row">
-              <div class="field">
-                <label>Nitrogen</label>
-                <input type="number" name="N" required />
-              </div>
-              <div class="field">
-                <label>Phosphorus</label>
-                <input type="number" name="P" required />
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="field">
-                <label>Potassium</label>
-                <input type="number" name="K" required />
-              </div>
-              <div class="field">
-                <label>Temperature (°C)</label>
-                <input type="number" step="0.01" name="temperature" required />
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="field">
-                <label>Humidity (%)</label>
-                <input type="number" step="0.01" name="humidity" required />
-              </div>
-              <div class="field">
-                <label>pH</label>
-                <input type="number" step="0.01" name="ph" required />
-              </div>
-            </div>
-
+        <form id="prediction-form">
+          <div class="row">
             <div class="field">
-              <label>Rainfall (mm)</label>
-              <input type="number" step="0.01" name="rainfall" required />
+              <label>Nitrogen</label>
+              <input type="number" name="N" required />
             </div>
-
-            <button class="cta">Get Recommendation</button>
-
-            <div class="legend">
-              <div class="chip">Random Forest</div>
-              <div class="chip">Normalized Inputs</div>
+            <div class="field">
+              <label>Phosphorus</label>
+              <input type="number" name="P" required />
             </div>
-          </form>
-
-          <div class="result-wrapper" id="result-wrapper">
-            <div class="result-label">Recommended Crop</div>
-            <div class="result-pill" id="crop-badge">—</div>
-            <div id="tips"></div>
           </div>
 
-          <footer>
-            Tip: Use decimals for temperature, pH & rainfall.
-          </footer>
+          <div class="row">
+            <div class="field">
+              <label>Potassium</label>
+              <input type="number" name="K" required />
+            </div>
+            <div class="field">
+              <label>Temperature (°C)</label>
+              <input type="number" step="0.01" name="temperature" required />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Humidity (%)</label>
+              <input type="number" step="0.01" name="humidity" required />
+            </div>
+            <div class="field">
+              <label>pH</label>
+              <input type="number" step="0.01" name="ph" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Rainfall (mm)</label>
+            <input type="number" step="0.01" name="rainfall" required />
+          </div>
+
+          <button type="submit">Get Recommendation</button>
+
+          <div class="legend">
+            <div class="chip">Random Forest</div>
+            <div class="chip">Eco Inputs</div>
+          </div>
+        </form>
+
+        <div class="result-wrapper" id="result-wrapper">
+          <div class="result-label">Recommended Crop</div>
+          <div class="result-pill" id="crop-badge">—</div>
+          <div id="tips"></div>
         </div>
+
+        <footer>
+          Grow green. Grow smart 🌱
+        </footer>
       </div>
     </div>
+  </div>
 
-    <script>
-      const form = document.getElementById("prediction-form");
-      const cropBadge = document.getElementById("crop-badge");
-      const resultWrapper = document.getElementById("result-wrapper");
-      const tips = document.getElementById("tips");
+  <script>
+    const form = document.getElementById("prediction-form");
+    const cropBadge = document.getElementById("crop-badge");
+    const resultWrapper = document.getElementById("result-wrapper");
+    const tips = document.getElementById("tips");
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-        const data = Object.fromEntries(new FormData(form).entries());
-        for (const k in data) data[k] = parseFloat(data[k]);
+      const data = Object.fromEntries(new FormData(form).entries());
+      for (const k in data) data[k] = parseFloat(data[k]);
 
-        const resp = await fetch("/predict", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        const json = await resp.json();
-        const crop = json.predicted_crop || "Unknown";
-
-        cropBadge.textContent = crop;
-        tips.innerHTML = "";
-
-        if (crop.toLowerCase().includes("rice"))
-          tips.innerHTML = `<div class="suggest">Maintain standing water during early growth.</div>`;
-        else
-          tips.innerHTML = `<div class="suggest">Maintain balanced nutrients and soil moisture.</div>`;
-
-        resultWrapper.classList.remove("show");
-        void resultWrapper.offsetWidth; // reset animation
-        resultWrapper.classList.add("show");
+      const resp = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
-    </script>
-  </body>
+
+      const json = await resp.json();
+      const crop = json.predicted_crop || "Unknown";
+
+      cropBadge.textContent = crop;
+      tips.innerHTML =
+        `<div class="suggest">Maintain balanced nutrients and moisture.</div>`;
+
+      resultWrapper.classList.remove("show");
+      void resultWrapper.offsetWidth;
+      resultWrapper.classList.add("show");
+    });
+  </script>
+</body>
 </html>
